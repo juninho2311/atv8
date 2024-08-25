@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Memória</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Jogo da Memória</h1>
+  <div id="gameBoard"></div>
+  <p id="message"></p>
+  <script src="script.js"></script>
+</body>
+</html>
+2. Estilização CSS (styles.css)
+css
+Copiar código
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  background-color: #f4f4f4;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+#gameBoard {
+  display: grid;
+  grid-template-columns: repeat(4, 100px);
+  grid-gap: 10px;
+}
+
+.card {
+  width: 100px;
+  height: 100px;
+  background-color: #00aaff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.card.flipped {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.card.matched {
+  background-color: #00ff00;
+  color: #ffffff;
+  pointer-events: none;
+}
+
+#message {
+  margin-top: 20px;
+  font-size: 1.2rem;
+}
+3. Lógica JavaScript (script.js)
+javascript
+Copiar código
+document.addEventListener('DOMContentLoaded', () => {
+  const cardsArray = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+  let firstCard = null;
+  let secondCard = null;
+  let lockBoard = false;
+  let matchedPairs = 0;
+
+  // Embaralhar as cartas
+  function shuffle(array) {
+    return array.sort(() => 0.5 - Math.random());
+  }
+
+  // Criar o tabuleiro
+  function createBoard() {
+    const shuffledCards = shuffle(cardsArray);
+    const gameBoard = document.getElementById('gameBoard');
+    
+    shuffledCards.forEach((icon) => {
+      const cardElement = document.createElement('div');
+      cardElement.classList.add('card');
+      cardElement.dataset.icon = icon;
+      cardElement.innerHTML = '?';
+      cardElement.addEventListener('click', onCardClick);
+      gameBoard.appendChild(cardElement);
+    });
+  }
+
+  // Lógica de clique nas cartas
+  function onCardClick(e) {
+    const clickedCard = e.target;
+
+    if (lockBoard || clickedCard === firstCard || clickedCard.classList.contains('flipped')) {
+      return;
+    }
+
+    clickedCard.classList.add('flipped');
+    clickedCard.innerHTML = clickedCard.dataset.icon;
+
+    if (!firstCard) {
+      firstCard = clickedCard;
+    } else {
+      secondCard = clickedCard;
+      checkMatch();
+    }
+  }
+
+  // Verificar se as cartas são iguais
+  function checkMatch() {
+    lockBoard = true;
+
+    if (firstCard.dataset.icon === secondCard.dataset.icon) {
+      firstCard.classList.add('matched');
+      secondCard.classList.add('matched');
+      matchedPairs++;
+      resetBoard();
+
+      // Verificar se o jogo terminou
+      if (matchedPairs === cardsArray.length / 2) {
+        document.getElementById('message').innerText = 'Parabéns! Você encontrou todos os pares!';
+      }
+    } else {
+      setTimeout(() => {
+        firstCard.innerHTML = '?';
+        secondCard.innerHTML = '?';
+        firstCard.classList.remove('flipped');
+        secondCard.classList.remove('flipped');
+        resetBoard();
+      }, 1000);
+    }
+  }
+
+  // Resetar as variáveis
+  function resetBoard() {
+    [firstCard, secondCard] = [null, null];
+    lockBoard = false;
+  }
+
+  // Inicializar o jogo
+  function initGame() {
+    createBoard();
+  }
+
+  initGame();
+});
